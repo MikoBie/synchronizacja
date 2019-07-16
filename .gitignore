@@ -12,6 +12,7 @@
 **/*.docx
 **/*.png
 **/*.pages
+**/*.pdf
 
 # Folders
 marcin

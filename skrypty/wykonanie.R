@@ -11,7 +11,7 @@
 ## Przycinanie wykresów działa dokładnie tak samo jak poprzednio. 
 ## Wykresy przytnij tylko raz. Jak już to zrobisz to możesz sobie zakomentować od tego mniejsza.
 
-source('przycinanie/przycinanie.R')
+source('skrypty/przycinanie.R')
 
 crop_charts(nowe)
 crop_charts(stare)
@@ -19,15 +19,15 @@ crop_charts(stare)
 ## Do tego miejsca
 
 ## Wczytanie danych i podział na klasy.
-source('przycinanie/analiza.R')
+source('skrypty/analiza.R')
 
 ## Narysowanie wykresów. Zwróć uwagę na to, że funkcja draw_matrices bierze argumenty time_window i show_full.
 ## Pierwszy służy do manipulowania długością okna czasowego. Defualtowo jest ustawione 60 sekund. Możesz
 ## tą wartością pomanipulować i zobaczyć jak wyniki będą się zmieniać jeśli będzie to więcej lub mniej. Show_full
 ## służy do podjęcia decyzji czy chce się zobaczyć wykres zbiorczy. Ten argument przyjmuje wartości TRUE albo
 ## FALSE. Defulatowo ustawiony jest jako FALSE
-draw_kooperacja <- draw_matrices(kooperacja, time_window = 60, show_full = FALSE)
-draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 60, show_full = FALSE)
+draw_kooperacja <- draw_matrices(kooperacja, time_window = 60, show_full = TRUE)
+draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 60, show_full = TRUE)
 
 
 ## Policzenie testu chi kwadrat goodness-of-fit. Zasadniczo jest to dość prosty test, który sprawdza na ile
@@ -37,7 +37,7 @@ draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 60, show_full = FAL
 ## zbioru liczb rzeczywistych, ale liczby rzeczywiste nie należą do zbioru liczb naturalnych
 tests <- compute_chi_square(list_kooperacja = draw_kooperacja$matrices,
                             list_rywalizacja = draw_rywalizacja$matrices,
-                            show_full = FALSE)
+                            show_full = TRUE)
 
 tests
 

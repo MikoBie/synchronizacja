@@ -68,7 +68,8 @@ read_files <- function(type = 'txt', folder = 'dane'){
                AY = X3 * normalizator,
                AZ = X4 * normalizator) %>%
         na.omit() %>%
-        select(AX, AY, AZ)
+        select(AX, AY, AZ) %>%
+        na.omit()
     }
   } 
   if (type == 'csv') {
@@ -77,7 +78,6 @@ read_files <- function(type = 'txt', folder = 'dane'){
     for (name in list_of_files_name) {
       list_of_files[[name %>%
                        str_extract("[:alnum:]+")]] <- data.table::fread(paste0(folder,"/",name)) %>%
-        filter(stats::complete.cases(.)) %>%
         rename(X1 = 1,
                X2 = 2,
                X3 = 3,
@@ -102,7 +102,8 @@ read_files <- function(type = 'txt', folder = 'dane'){
               AY = X5 * .244,
               AZ = X6 * .244) %>%
         select(AX, AY, AZ) %>%
-        as_tibble()
+        as_tibble() %>%
+        na.omit()
         
     }
   }
