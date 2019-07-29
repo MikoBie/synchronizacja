@@ -129,28 +129,28 @@ draw_matrices <- function(list, class = 10, time_window = 60, show_full = FALSE)
   ## interakcji. 2) macierze z prawdopodobieństwem każdej z klas.
 
   iterator <- seq(from = 1, to = length(list), by = 2)
-  matrix_start <- matrix(data = 0,
+  matrix_start <- matrix(data = 1,
                          nrow = class,
                          ncol = class)
-  matrix_middle <- matrix(data = 0,
+  matrix_middle <- matrix(data = 1,
                           nrow = class,
                           ncol = class)
-  matrix_end <- matrix(data = 0,
+  matrix_end <- matrix(data = 1,
                        nrow = class,
                        ncol = class)
-  matrix_full <- matrix(data = 0,
+  matrix_full <- matrix(data = 1,
                         nrow = class,
                         ncol = class)
-  matrix_start_teo <- matrix(data = 0,
+  matrix_start_teo <- matrix(data = 1,
                              nrow = class,
                              ncol = class)
-  matrix_middle_teo <- matrix(data = 0,
+  matrix_middle_teo <- matrix(data = 1,
                               nrow = class,
                               ncol = class)
-  matrix_end_teo <- matrix(data = 0,
+  matrix_end_teo <- matrix(data = 1,
                            nrow = class,
                            ncol = class)
-  matrix_full_teo <- matrix(data = 0,
+  matrix_full_teo <- matrix(data = 1,
                         nrow = class,
                         ncol = class)
   for (i in iterator){
@@ -259,7 +259,7 @@ draw_matrices <- function(list, class = 10, time_window = 60, show_full = FALSE)
   
 }
 
-compute_chi_square <- function(list_kooperacja, list_rywalizacja, limit = 4, show_full = FALSE){
+compute_chi_square <- function(list_kooperacja, list_rywalizacja, limit = 1, show_full = FALSE){
   ## Funkcja, która liczy chi kwadrat goodness-of-fit. Innymi słowy na ile jeden rozkład pochodzi z drugiego.
   ## Ponieważ ta funkcja odwołuje się nazw w liście to argumenty muszą być wynikiem funkcji draw_matrices.
   ## Jako argumenty bierze:

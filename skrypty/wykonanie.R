@@ -26,8 +26,8 @@ source('skrypty/analiza.R')
 ## tą wartością pomanipulować i zobaczyć jak wyniki będą się zmieniać jeśli będzie to więcej lub mniej. Show_full
 ## służy do podjęcia decyzji czy chce się zobaczyć wykres zbiorczy. Ten argument przyjmuje wartości TRUE albo
 ## FALSE. Defulatowo ustawiony jest jako FALSE
-draw_kooperacja <- draw_matrices(kooperacja, time_window = 60, show_full = TRUE)
-draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 60, show_full = TRUE)
+draw_kooperacja <- draw_matrices(kooperacja, time_window = 120, show_full = FALSE)
+draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 120, show_full = FALSE)
 
 
 ## Policzenie testu chi kwadrat goodness-of-fit. Zasadniczo jest to dość prosty test, który sprawdza na ile
@@ -37,7 +37,7 @@ draw_rywalizacja <- draw_matrices(rywalizacja, time_window = 60, show_full = TRU
 ## zbioru liczb rzeczywistych, ale liczby rzeczywiste nie należą do zbioru liczb naturalnych
 tests <- compute_chi_square(list_kooperacja = draw_kooperacja$matrices,
                             list_rywalizacja = draw_rywalizacja$matrices,
-                            show_full = TRUE)
+                            show_full = FALSE)
 
 tests
 

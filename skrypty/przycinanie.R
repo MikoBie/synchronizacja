@@ -56,7 +56,7 @@ read_files <- function(type = 'txt', folder = 'dane'){
     list_of_files_name <- list.files(path = paste0(folder, "/"), pattern = ".txt")
     list_of_files <- list()
     for (name in list_of_files_name){
-      normalizator <- if_else(grepl(x = name, pattern = "long"), .244, .122)
+      normalizator <- if_else(grepl(x = name, pattern = "long"), .488, .244)
       list_of_files[[name %>%
                        str_extract("[:alnum:]+")]] <- read_table(paste0(folder,"/",name),
                                                                  col_names = FALSE,
@@ -76,6 +76,7 @@ read_files <- function(type = 'txt', folder = 'dane'){
     list_of_files_name <- list.files(path = paste0(folder, "/"), pattern = ".csv")
     list_of_files <- list()
     for (name in list_of_files_name) {
+      normalizator <- .122
       list_of_files[[name %>%
                        str_extract("[:alnum:]+")]] <- data.table::fread(paste0(folder,"/",name)) %>%
         rename(X1 = 1,
@@ -98,9 +99,9 @@ read_files <- function(type = 'txt', folder = 'dane'){
               X7 = as.numeric(X7),
               X8 = as.numeric(X8),
               X9 = as.numeric(X9),
-              AX = X4 * .244,
-              AY = X5 * .244,
-              AZ = X6 * .244) %>%
+              AX = X4 * normalizator,
+              AY = X5 * normalizator,
+              AZ = X6 * normalizator) %>%
         select(AX, AY, AZ) %>%
         as_tibble() %>%
         na.omit()
@@ -132,6 +133,24 @@ compute_mean <- function(list_of_df){
       id <- id[1:nrow(table)]
       results[[names(list_of_df[i])]] <- table %>%
         mutate(id = id,
+               VX = (AX - lag(AX)) / (1/16),
+               VY = (AY - lag(AY)) / (1/16),
+               VZ = (AZ - lag(AZ)) / (1/16)) %>%
+        group_by(id) %>%
+        summarise(AX = mean(AX, na.rm = TRUE),
+                  AY = mean(AY, na.rm = TRUE),
+                  AZ = mean(AZ, na.rm = TRUE),
+                  VX = mean(VX, na.rm = TRUE),
+                  VY = mean(VY, na.rm = TRUE),
+                  VZ = mean(VZ, na.rm = TRUE)) %>%
+        mutate(Vlength = sqrt(VX^2 + VY^2 + VZ^2),
+               Alength = sqrt(AX^2 + AY^2 + AZ^2))
+    } 
+    if (grepl(x = names(list_of_df[i]), pattern = 'stare')){
+      id <-  rep(1:ceiling(nrow(table)/4), 4) %>% sort()
+      id <- id[1:nrow(table)]
+      results[[names(list_of_df[i])]] <- table %>%
+        mutate(id = id,
                VX = (AX - lag(AX)) / (1/8),
                VY = (AY - lag(AY)) / (1/8),
                VZ = (AZ - lag(AZ)) / (1/8)) %>%
@@ -144,14 +163,14 @@ compute_mean <- function(list_of_df){
                   VZ = mean(VZ, na.rm = TRUE)) %>%
         mutate(Vlength = sqrt(VX^2 + VY^2 + VZ^2),
                Alength = sqrt(AX^2 + AY^2 + AZ^2))
-    } else {
+    }else {
       id <-  rep(1:ceiling(nrow(table)/2),2) %>% sort()
       id <- id[1:nrow(table)]
       results[[names(list_of_df[i])]] <- table %>%
         mutate(id = id,
-               VX = (AX - lag(AX)) / (1/4),
-               VY = (AY - lag(AY)) / (1/4),
-               VZ = (AZ - lag(AZ)) / (1/4)) %>%
+               VX = (AX - lag(AX)) / (1/8),
+               VY = (AY - lag(AY)) / (1/8),
+               VZ = (AZ - lag(AZ)) / (1/8)) %>%
         group_by(id) %>%
         summarise(AX = mean(AX, na.rm = TRUE),
                   AY = mean(AY, na.rm = TRUE),
@@ -214,6 +233,8 @@ crop_charts <- function(condition, type = 'vel'){
   ## rywalizacja czy kooperacja.
   
   iterator <- seq(from = 1, to = length(condition), by = 2)
+  przycinanie <- tibble()
+  
   for (i in iterator){
     if (type == 'vel'){
       osoba1 <- condition[[i]] %>%
@@ -296,11 +317,77 @@ crop_charts <- function(condition, type = 'vel'){
           write.csv(osoba1, paste0("rywalizacja",'/','para',number+1,'A','.csv'))
           write.csv(osoba2, paste0("rywalizacja",'/','para',number+1,'B','.csv'))
         }
+        przycinanie <- bind_rows(przycinanie, tibble(name = c(chart, chart2),
+                                                     poczatek = c(xlim_left,xlim_left2),
+                                                     koniec = c(xlim_right,xlim_right2)))
         decision <- TRUE 
       }
     }
   }
+  write.csv(przycinanie, 'przycinanie.csv')
 }
+
+
+automatic_crop_charts <- function(condition){
+  ## To jest funkcja która powinna automatycznie przycinać wykresy,
+  ## pod warunkiem, że znajdzie plik przycinanie.csv.
+  ## Bierze dwa argumenty:
+    ## condition - listę date frame'ów
+  ## Ta funkcja nic nie zwraca, ale za to zapisuje wyniki do plików csv. Sama rozpoznaje czy ma być to katalog
+  ## rywalizacja czy kooperacja.
+  
+  przycinanie <- read.csv('przycinanie.csv', header = TRUE, sep = ';')
+  iterator <- seq(from = 1, to = length(condition), by = 2)
+  
+  for (i in iterator){
+    osoba1 <- condition[[i]] %>%
+      mutate(length = Vlength)
+    osoba2 <- condition[[i + 1]] %>%
+      mutate(length = Vlength)
+    chart <- names(condition[i])
+    chart2 <- names(condition[i+1])
+    przyciecie <- przycinanie %>%
+      filter(name == chart)
+    przyciecie2 <- przycinanie %>%
+      filter(name == chart2)
+    osoba1 <- osoba1 %>%
+      slice(-przyciecie$koniec:-nrow(.)) %>%
+      slice(-1:-przyciecie$poczatek)
+    osoba2 <- osoba2 %>%
+      slice(-przyciecie2$koniec:-nrow(.)) %>%
+      slice(-1:-przyciecie2$poczatek)
+    if (nrow(osoba1) > nrow(osoba2)) {
+      osoba1 <- osoba1 %>%
+        slice(1:nrow(osoba2))
+    } else {
+      osoba2 <- osoba2 %>%
+        slice(1:nrow(osoba1))
+    }
+    if (grepl(x = chart, pattern = 'kop') & grepl(x = chart2, pattern = 'kop')){
+      number <- list.files(path = "kooperacja/", pattern = '.csv') %>%
+        str_extract(pattern = "[:digit:]+") %>%
+        as.numeric() %>%
+        max()
+      if (number == -Inf){
+        number <- 0
+      }
+      write.csv(osoba1, paste0("kooperacja",'/','para',number+1,'A','.csv'))
+      write.csv(osoba2, paste0("kooperacja",'/','para',number+1,'B','.csv'))
+    }
+    if (grepl(x = chart, pattern = 'ryw') & grepl(x = chart2, pattern = 'ryw')){
+      number <- list.files(path = "rywalizacja/", pattern = '.csv') %>%
+        str_extract(pattern = "[:digit:]+") %>%
+        as.numeric() %>%
+        max()
+      if (number == -Inf){
+        number <- 0
+      }
+      write.csv(osoba1, paste0("rywalizacja",'/','para',number+1,'A','.csv'))
+      write.csv(osoba2, paste0("rywalizacja",'/','para',number+1,'B','.csv'))
+    }
+  }
+}
+
 
 ##################################################
 ################### WYKONANIE ####################
@@ -316,5 +403,12 @@ stare <- compute_mean(stare)
 
 ## Zmiana ustawień by wyświetlały się dwa wykresy jeden pod drugim.
 par(mfrow = c(2,1))
+
+
+
+
+
+
+
 
 
